@@ -43,6 +43,9 @@ public slots:
 
 protected:
   QScopedPointer<qSlicermyModuleModuleWidgetPrivate> d_ptr;
+  void onNodeSelected(vtkMRMLNode* node);
+  /// Triggered upon MRML transform node updates
+  void onMRMLSliceNodeModified(vtkObject* caller);
 
   virtual void setup();
 
