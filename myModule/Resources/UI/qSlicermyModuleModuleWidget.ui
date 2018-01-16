@@ -24,39 +24,12 @@
        <widget class="qSlicermyModuleFooBarWidget" name="FooBar" native="true"/>
       </item>
       <item>
-        <widget class="QPushButton" name="MyButton">
+        <widget class="QPushButton" name="RunFromLog">
           <property name="text">
-            <string>My button</string>
+            <string>Run macro</string>
           </property>
         </widget>
       </item>
-       <item>
-         <widget class="qMRMLNodeComboBox" name="SliceNodeSelector" native="true">
-           <property name="autoFillBackground">
-             <bool>false</bool>
-           </property>
-           <property name="nodeTypes" stdset="0">
-             <stringlist>
-               <string>vtkMRMLSliceNode</string>
-             </stringlist>
-           </property>
-           <property name="showHidden" stdset="0">
-             <bool>true</bool>
-           </property>
-           <property name="noneEnabled" stdset="0">
-             <bool>true</bool>
-           </property>
-           <property name="addEnabled" stdset="0">
-             <bool>false</bool>
-           </property>
-           <property name="removeEnabled" stdset="0">
-             <bool>false</bool>
-           </property>
-           <property name="renameEnabled" stdset="0">
-             <bool>false</bool>
-           </property>
-         </widget>
-       </item>
      </layout>
     </widget>
    </item>
@@ -96,22 +69,5 @@
   </customwidget>
  </customwidgets>
  <resources/>
-  <connections>
-    <connection>
-      <sender>qSlicerReformatModuleWidget</sender>
-      <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-      <receiver>SliceNodeSelector</receiver>
-      <slot>setMRMLScene(vtkMRMLScene*)</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>293</x>
-          <y>6</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>431</x>
-          <y>36</y>
-        </hint>
-      </hints>
-    </connection>
-  </connections>
+ <connections/>
 </ui>

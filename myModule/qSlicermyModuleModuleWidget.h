@@ -41,15 +41,13 @@ public:
   qSlicermyModuleModuleWidget(QWidget *parent=0);
   virtual ~qSlicermyModuleModuleWidget();
 
-  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
-
 public slots:
 
 protected slots :
-	void onLog();
-	void onNewScene(vtkMRMLScene* scene);
-	void onNodeSelected(vtkMRMLNode* node);
-	void onMRMLSliceNodeModified(vtkObject* caller);
+	void onRedSliceModified(vtkObject* caller);
+	void onYellowSliceModified(vtkObject* caller);
+	void onGreenSliceModified(vtkObject* caller);
+	void runFromLog();
 
 protected:
   QScopedPointer<qSlicermyModuleModuleWidgetPrivate> d_ptr;

@@ -17,8 +17,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QMenu>
-#include <QString>
 
 // SlicerQt includes
 #include "qSlicermyModuleModuleWidget.h"
@@ -29,27 +27,21 @@
 // SlicerQt includes
 #include "qMRMLSliceControllerWidget_p.h" // For updateSliceOrientationSelector
 #include "vtkMRMLSliceNode.h"
+#include "vtkSlicermyModuleLogic.h"
 
 //// MRML includes
 #include "vtkMRMLApplicationLogic.h"
 // MRML includes
 #include "vtkMRMLApplicationLogic.h"
-#include "vtkMRMLCameraNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLSliceCompositeNode.h"
 #include "vtkMRMLSliceLogic.h"
-#include "vtkMRMLVolumeNode.h"
-
-// VTK includes
-#include <vtkCamera.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkTransform.h>
 
 // IO for printing to files
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class qSlicermyModuleModuleWidgetPrivate: public Ui_qSlicermyModuleModuleWidget
@@ -59,10 +51,25 @@ protected:
 	qSlicermyModuleModuleWidget* const q_ptr;
 
 public:
-  qSlicermyModuleModuleWidgetPrivate(qSlicermyModuleModuleWidget& object);
+  qSlicermyModuleModuleWidgetPrivate(qSlicermyModuleModuleWidget& object); 
+  void recordSliceChange(double value, std::string type);
 
-  vtkMRMLSliceNode* MRMLSliceNode;
-  vtkMRMLSliceLogic* MRMLSliceLogic;
+  vtkMRMLSliceNode* red;
+  vtkMRMLSliceLogic* redLogic;
+
+  vtkMRMLSliceNode* yellow;
+  vtkMRMLSliceLogic* yellowLogic;
+
+  vtkMRMLSliceNode* green;
+  vtkMRMLSliceLogic* greenLogic;
+
+  const std::string RED = "red_slice=";
+  const std::string YELLOW = "yellow_slice=";
+  const std::string GREEN = "green_slice=";
+  int isRunning;
+
+private:
+	const std::string FILE = "log.txt";
 };
 
 //-----------------------------------------------------------------------------
@@ -71,10 +78,30 @@ public:
 //-----------------------------------------------------------------------------
 qSlicermyModuleModuleWidgetPrivate::qSlicermyModuleModuleWidgetPrivate(qSlicermyModuleModuleWidget& object): q_ptr(&object)
 {
-	this->MRMLSliceNode = 0;
-	this->MRMLSliceLogic = 0;
+	this->red = 0;
+	this->redLogic = 0;
+
+	this->yellow = 0;
+	this->yellowLogic = 0;
+
+	this->green = 0;
+	this->greenLogic = 0;
+
+	this->isRunning = 0;
 }
 
+//-----------------------------------------------------------------------------
+void qSlicermyModuleModuleWidgetPrivate::recordSliceChange(double value, std::string type)
+{
+	std::ostringstream strs;
+	strs << value;
+
+	ofstream outfile;
+
+	outfile.open(this->FILE, std::ios_base::app);
+	outfile << type << strs.str() << "\n";
+	outfile.close();
+}
 //-----------------------------------------------------------------------------
 // qSlicermyModuleModuleWidget methods
 
@@ -97,134 +124,124 @@ void qSlicermyModuleModuleWidget::setup()
 	d->setupUi(this);
 	this->Superclass::setup();
 
-	this->connect(d->SliceNodeSelector,
-		SIGNAL(currentNodeChanged(vtkMRMLNode*)),
-		SLOT(onNodeSelected(vtkMRMLNode*)));
+	vtkSlicermyModuleLogic* logic = vtkSlicermyModuleLogic::SafeDownCast(this->logic());
 
-	this->connect(this,
-		SIGNAL(mrmlSceneChanged(vtkMRMLScene*)),
-		SLOT(onNewScene(vtkMRMLScene*)));
-
-	this->connect(d->MyButton, SIGNAL(pressed()),
-		this, SLOT(onLog()));
-}
-
-//------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidget::onLog()
-{
-	ofstream outfile;
-
-	outfile.open("log.txt", std::ios_base::app);
-	outfile << "Hi!\n";
-	outfile.close();
-}
-
-//------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidget::onNewScene(vtkMRMLScene* scene)
-{
-	Q_D(qSlicermyModuleModuleWidget);
-
-	d->SliceNodeSelector->setMRMLScene(scene);
-	vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
-		scene->GetFirstNodeByClass("vtkMRMLSliceNode")
-	);
+	std::vector< vtkMRMLNode *> nodes;
+	int nodesSize = logic->GetMRMLScene()->GetNodesByClass("vtkMRMLSliceNode", nodes);
 
 	// Listen for SliceNode changes
-	this->qvtkReconnect(d->MRMLSliceNode, sliceNode,
+	this->qvtkReconnect(d->red, vtkMRMLSliceNode::SafeDownCast(nodes[0]),
 		vtkCommand::ModifiedEvent,
-		this, SLOT(onMRMLSliceNodeModified(vtkObject*)));
+		this, SLOT(onRedSliceModified(vtkObject*)));
 
-	d->MRMLSliceNode = sliceNode;
-	d->MRMLSliceLogic =
-		this->logic()->GetMRMLApplicationLogic()->GetSliceLogic(d->MRMLSliceNode);
-	
-		ofstream outfile;
+	this->qvtkReconnect(d->yellow, vtkMRMLSliceNode::SafeDownCast(nodes[1]),
+		vtkCommand::ModifiedEvent,
+		this, SLOT(onYellowSliceModified(vtkObject*)));
 
-	outfile.open("log.txt", std::ios_base::app);
-	outfile << "current node:" << sliceNode->GetNodeTagName() << "\n";
-	outfile.close();
+	this->qvtkReconnect(d->green, vtkMRMLSliceNode::SafeDownCast(nodes[2]),
+		vtkCommand::ModifiedEvent,
+		this, SLOT(onGreenSliceModified(vtkObject*)));
+
+	d->red = vtkMRMLSliceNode::SafeDownCast(nodes[0]);
+	d->redLogic = this->logic()->GetMRMLApplicationLogic()->GetSliceLogic(d->red);
+
+	d->yellow = vtkMRMLSliceNode::SafeDownCast(nodes[1]);
+	d->yellowLogic = this->logic()->GetMRMLApplicationLogic()->GetSliceLogic(d->yellow);
+
+	d->green = vtkMRMLSliceNode::SafeDownCast(nodes[2]);
+	d->greenLogic = this->logic()->GetMRMLApplicationLogic()->GetSliceLogic(d->green);
+
+	this->connect(d->RunFromLog, SIGNAL(pressed()),
+		this, SLOT(runFromLog()));
 }
 
 //------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidget::onNodeSelected(vtkMRMLNode* node)
+void qSlicermyModuleModuleWidget::onRedSliceModified(vtkObject* caller)
 {
 	Q_D(qSlicermyModuleModuleWidget);
 
-	vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(node);
+	if (d->isRunning)
+		return;
 
-	// Listen for SliceNode changes
-	this->qvtkReconnect(d->MRMLSliceNode, sliceNode,
-		vtkCommand::ModifiedEvent,
-		this, SLOT(onMRMLSliceNodeModified(vtkObject*)));
-
-	d->MRMLSliceNode = sliceNode;
-	d->MRMLSliceLogic =
-		this->logic()->GetMRMLApplicationLogic()->GetSliceLogic(d->MRMLSliceNode);
-
-	ofstream outfile;
-
-	outfile.open("log.txt", std::ios_base::app);
-	outfile << "onNodeSelected()\n";
-	outfile.close();
+	d->recordSliceChange(d->redLogic->GetSliceOffset(), d->RED);
 }
 
 //------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidget::onMRMLSliceNodeModified(vtkObject* caller)
+void qSlicermyModuleModuleWidget::onYellowSliceModified(vtkObject* caller)
 {
 	Q_D(qSlicermyModuleModuleWidget);
 
-	ofstream outfile;
+	if (d->isRunning)
+		return;
 
-	outfile.open("log.txt", std::ios_base::app);
-	outfile << "onMRMLSliceNodeModified()\n";
-	outfile.close();
+	d->recordSliceChange(d->yellowLogic->GetSliceOffset(), d->YELLOW);
+}
 
-	vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(caller);
-	if (!sliceNode)
+//------------------------------------------------------------------------------
+void qSlicermyModuleModuleWidget::onGreenSliceModified(vtkObject* caller)
+{
+	Q_D(qSlicermyModuleModuleWidget);
+
+	if (d->isRunning)
+		return;
+
+	d->recordSliceChange(d->greenLogic->GetSliceOffset(), d->GREEN);
+}
+
+//------------------------------------------------------------------------------
+void qSlicermyModuleModuleWidget::runFromLog()
+{
+	Q_D(qSlicermyModuleModuleWidget);
+	if (!d->redLogic || !d->yellowLogic || !d->greenLogic)
 	{
 		return;
 	}
-}
 
-//-----------------------------------------------------------
-bool qSlicermyModuleModuleWidget::setEditedNode(vtkMRMLNode* node,
-	QString role /* = QString()*/,
-	QString context /* = QString()*/)
-{
-	Q_D(qSlicermyModuleModuleWidget);
-	Q_UNUSED(role);
-	Q_UNUSED(context);
+	d->isRunning = 1;
 
-	ofstream outfile;
-
-	outfile.open("log.txt", std::ios_base::app);
-	outfile << "setEditedNode:";
-
-	if (vtkMRMLSliceNode::SafeDownCast(node))
+	std::ifstream infile("log.txt");
+	std::string line;
+	while (std::getline(infile, line))
 	{
-		d->SliceNodeSelector->setCurrentNode(node);
-		outfile << "success no 1\n";
-		outfile.close();
-		return true;
-	}
-
-	if (vtkMRMLSliceCompositeNode::SafeDownCast(node))
-	{
-		vtkMRMLSliceCompositeNode* sliceCompositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(node);
-		vtkMRMLSliceNode* sliceNode = vtkMRMLSliceLogic::GetSliceNode(sliceCompositeNode);
-		if (!sliceNode)
+		if (line.find(d->RED) != -1)
 		{
-			outfile << "failure no 1\n";
-			outfile.close();
-			return false;
+			double val = std::stod(line.substr(d->RED.size()));
+
+			if (val == 0)
+				continue;
+
+			d->redLogic->StartSliceOffsetInteraction();
+			d->redLogic->SetSliceOffset(val);
+			d->redLogic->EndSliceOffsetInteraction();
+			continue;
 		}
-		d->SliceNodeSelector->setCurrentNode(sliceNode);
-		outfile << "success no 2\n";
-		outfile.close();
-		return true;
+
+		if (line.find(d->YELLOW) != -1)
+		{
+			double val = std::stod(line.substr(d->YELLOW.size()));
+
+			if (val == 0)
+				continue;
+
+			d->yellowLogic->StartSliceOffsetInteraction();
+			d->yellowLogic->SetSliceOffset(val);
+			d->yellowLogic->EndSliceOffsetInteraction();
+			continue;
+		}
+
+		if (line.find(d->GREEN) != -1)
+		{
+			double val = std::stod(line.substr(d->GREEN.size()));
+
+			if (val == 0)
+				continue;
+
+			d->greenLogic->StartSliceOffsetInteraction();
+			d->greenLogic->SetSliceOffset(val);
+			d->greenLogic->EndSliceOffsetInteraction();
+			continue;
+		}
 	}
 
-	outfile << "failure no 2\n";
-	outfile.close();
-	return false;
+	d->isRunning = 0;
 }
