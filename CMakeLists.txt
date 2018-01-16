@@ -10,7 +10,7 @@ set(EXTENSION_CONTRIBUTORS "qwe (AnyWare Corp.)")
 set(EXTENSION_DESCRIPTION "This is an example of an extension using SuperBuild to build a dependent project named Foo")
 set(EXTENSION_ICONURL "http://www.example.com/Slicer/Extensions/myExtension.png")
 set(EXTENSION_SCREENSHOTURLS "http://www.example.com/Slicer/Extensions/myExtension/Screenshots/1.png")
-set(EXTENSION_DEPENDS "NA") # Specified as a space separated string, a list or 'NA' if any
+set(EXTENSION_DEPENDS Reformat) # Specified as a space separated string, a list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 
 set(SUPERBUILD_TOPLEVEL_PROJECT inner)

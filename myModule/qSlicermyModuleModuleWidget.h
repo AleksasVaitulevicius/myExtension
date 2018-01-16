@@ -18,6 +18,8 @@
 #ifndef __qSlicermyModuleModuleWidget_h
 #define __qSlicermyModuleModuleWidget_h
 
+#include <QObject>
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
@@ -25,6 +27,7 @@
 
 class qSlicermyModuleModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLScene;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_MYMODULE_EXPORT qSlicermyModuleModuleWidget :
@@ -38,14 +41,18 @@ public:
   qSlicermyModuleModuleWidget(QWidget *parent=0);
   virtual ~qSlicermyModuleModuleWidget();
 
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
+
 public slots:
 
+protected slots :
+	void onLog();
+	void onNewScene(vtkMRMLScene* scene);
+	void onNodeSelected(vtkMRMLNode* node);
+	void onMRMLSliceNodeModified(vtkObject* caller);
 
 protected:
   QScopedPointer<qSlicermyModuleModuleWidgetPrivate> d_ptr;
-  void onNodeSelected(vtkMRMLNode* node);
-  /// Triggered upon MRML transform node updates
-  void onMRMLSliceNodeModified(vtkObject* caller);
 
   virtual void setup();
 
