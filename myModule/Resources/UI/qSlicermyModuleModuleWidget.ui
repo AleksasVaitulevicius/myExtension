@@ -21,14 +21,43 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="qSlicermyModuleFooBarWidget" name="FooBar" native="true"/>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+            <widget class="QPushButton" name="StepBackward">
+              <property name="text">
+                <string>Step backward</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="StepForward">
+              <property name="text">
+                <string>Step forward</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
       </item>
       <item>
-        <widget class="QPushButton" name="RunFromLog">
-          <property name="text">
-            <string>Run macro</string>
-          </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+            <widget class="QPushButton" name="StartRecording">
+              <property name="text">
+                <string>Start recording</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="StopRecording">
+              <property name="text">
+                <string>Stop recording</string>
+              </property>
+              <property name="enabled" stdset="0">
+                <bool>false</bool>
+              </property>
+            </widget>
+          </item>
+        </layout>
       </item>
      </layout>
     </widget>

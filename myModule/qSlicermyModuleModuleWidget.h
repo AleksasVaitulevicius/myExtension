@@ -47,7 +47,10 @@ protected slots :
 	void onRedSliceModified(vtkObject* caller);
 	void onYellowSliceModified(vtkObject* caller);
 	void onGreenSliceModified(vtkObject* caller);
-	void runFromLog();
+	void stepForward();
+	void stepBackward();
+	void startRecording();
+	void stopRecording();
 
 protected:
   QScopedPointer<qSlicermyModuleModuleWidgetPrivate> d_ptr;
