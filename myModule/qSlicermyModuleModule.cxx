@@ -75,7 +75,7 @@ QString qSlicermyModuleModule::acknowledgementText() const
 QStringList qSlicermyModuleModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("John Doe (AnyWare Corp.)");
+  moduleContributors << QString("Aleksas Vaitulevicius");
   return moduleContributors;
 }
 

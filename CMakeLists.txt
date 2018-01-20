@@ -6,7 +6,7 @@ project(myExtension)
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "http://slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/myExtension")
 set(EXTENSION_CATEGORY "Examples")
-set(EXTENSION_CONTRIBUTORS "qwe (AnyWare Corp.)")
+set(EXTENSION_CONTRIBUTORS "Aleksas Vaitulevicius")
 set(EXTENSION_DESCRIPTION "This is an example of an extension using SuperBuild to build a dependent project named Foo")
 set(EXTENSION_ICONURL "http://www.example.com/Slicer/Extensions/myExtension.png")
 set(EXTENSION_SCREENSHOTURLS "http://www.example.com/Slicer/Extensions/myExtension/Screenshots/1.png")
