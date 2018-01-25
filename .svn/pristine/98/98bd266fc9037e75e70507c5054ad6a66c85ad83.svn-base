@@ -51,7 +51,6 @@ protected slots :
 	void stepBackward();
 	void startRecording();
 	void stopRecording();
-	void clearLogFile();
 
 protected:
   QScopedPointer<qSlicermyModuleModuleWidgetPrivate> d_ptr;

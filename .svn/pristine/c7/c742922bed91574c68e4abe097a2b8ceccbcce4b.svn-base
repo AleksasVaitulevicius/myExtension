@@ -17,7 +17,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QString>
 
 // SlicerQt includes
 #include "qSlicermyModuleModuleWidget.h"
@@ -73,10 +72,8 @@ public:
   qSlicermyModuleModuleWidgetPrivate(qSlicermyModuleModuleWidget& object); 
   void recordSliceChange(double value, std::string type);
   void perform(std::vector<Interaction> interactions);
-  int getLogPosition(int position, std::ifstream* infile); 
-  void detectAmountOfInteractionGroup();
+  int getLogPosition(int position, std::ifstream* infile);
   std::vector<Interaction> toVector(std::ifstream* infile);
-  void clearLogFile();
 
   vtkMRMLSliceNode* red;
   vtkMRMLSliceLogic* redLogic;
@@ -102,7 +99,6 @@ private:
 
 	const std::time_t DELAY_OF_INTERACTION = 1;
 	std::time_t lastInteraction;
-	int interactionCount;
 };
 
 //-----------------------------------------------------------------------------
@@ -123,7 +119,6 @@ qSlicermyModuleModuleWidgetPrivate::qSlicermyModuleModuleWidgetPrivate(qSlicermy
 	this->isRecording = 0;
 	this->position = 0;
 	this->lastInteraction = std::time(nullptr);
-	this->interactionCount = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -139,11 +134,8 @@ void qSlicermyModuleModuleWidgetPrivate::recordSliceChange(double value, std::st
 	std::time_t interval = difftime(current, this->lastInteraction);
 	this->lastInteraction = current;
 
-	if (interval >= this->DELAY_OF_INTERACTION)
-	{
-		outfile << "Interaction " << this->interactionCount << "\n";
-		this->interactionCount++;
-	}
+	if(interval >= this->DELAY_OF_INTERACTION)
+		outfile << "Interaction\n";
 
 	outfile << type << strs.str() << "\n";
 	outfile.close();
@@ -225,23 +217,6 @@ int qSlicermyModuleModuleWidgetPrivate::getLogPosition(int position, std::ifstre
 }
 
 //-----------------------------------------------------------------------------
-void qSlicermyModuleModuleWidgetPrivate::detectAmountOfInteractionGroup()
-{
-	std::ifstream infile(this->FILE);
-
-	std::string line;
-	while (std::getline(infile, line))
-	{
-		if (line.find("Interaction") != -1)
-		{
-			this->interactionCount++;
-		}
-	}
-
-	infile.close();
-}
-
-//-----------------------------------------------------------------------------
 std::vector<Interaction> qSlicermyModuleModuleWidgetPrivate::toVector(std::ifstream* infile)
 {
 	std::vector<Interaction> result;
@@ -275,22 +250,6 @@ std::vector<Interaction> qSlicermyModuleModuleWidgetPrivate::toVector(std::ifstr
 	return result;
 }
 
-//------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidgetPrivate::clearLogFile()
-{
-	this->position = 0;
-	this->lastInteraction = 0;
-	this->interactionCount = 0;
-	this->InteractionsNo->setText(QString("%1:%2").arg("Interaction", QString::number(this->position)));
-
-
-	ofstream outfile;
-	outfile.open(this->FILE, std::ios::out);
-
-	outfile << "";
-	outfile.close();
-}
-
 //-----------------------------------------------------------------------------
 // qSlicermyModuleModuleWidget methods
 
@@ -311,7 +270,6 @@ void qSlicermyModuleModuleWidget::setup()
 {
 	Q_D(qSlicermyModuleModuleWidget);
 	d->setupUi(this);
-	d->detectAmountOfInteractionGroup();
 	this->Superclass::setup();
 
 	vtkSlicermyModuleLogic* logic = vtkSlicermyModuleLogic::SafeDownCast(this->logic());
@@ -349,8 +307,6 @@ void qSlicermyModuleModuleWidget::setup()
 		this, SLOT(startRecording()));
 	this->connect(d->StopRecording, SIGNAL(pressed()),
 		this, SLOT(stopRecording()));
-	this->connect(d->ClearLogFile, SIGNAL(pressed()),
-		this, SLOT(clearLogFile()));
 }
 
 //------------------------------------------------------------------------------
@@ -403,8 +359,6 @@ void qSlicermyModuleModuleWidget::stepForward()
 
 	d->position++;
 
-	d->InteractionsNo->setText(QString("%1:%2").arg("Interaction", QString::number(d->position)));
-
 	std::vector<Interaction> interactions = d->toVector(&infile);
 
 	d->perform(interactions);
@@ -437,8 +391,6 @@ void qSlicermyModuleModuleWidget::stepBackward()
 
 	d->position--;
 
-	d->InteractionsNo->setText(QString("%1:%2").arg("Interaction", QString::number(d->position)));
-
 	std::vector<Interaction> interactions = d->toVector(&infile);
 	std::reverse(interactions.begin(), interactions.end());
 
@@ -464,12 +416,4 @@ void qSlicermyModuleModuleWidget::stopRecording()
 	d->isRecording = 0;
 	d->StopRecording->setEnabled(false);
 	d->StartRecording->setEnabled(true);
-}
-
-//------------------------------------------------------------------------------
-void qSlicermyModuleModuleWidget::clearLogFile()
-{
-	Q_D(qSlicermyModuleModuleWidget);
-
-	d->clearLogFile();
 }
